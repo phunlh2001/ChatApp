@@ -1,0 +1,120 @@
+﻿@page
+@model IndexModel
+@using ChatApp.Extensions
+@using ChatApp.Models
+@using Microsoft.AspNetCore.Http;
+@using Newtonsoft.Json
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor;
+@{
+    ViewData["Title"] = "Home";
+
+    var session = HttpContextAccessor.HttpContext.Session;
+	var user = session.GetObject<Account>("user");
+}
+
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/app-chat.css" />
+
+<style>
+    #messageList {
+        
+    }
+</style>
+
+
+<div class="container">
+<div class="row clearfix">
+    <div class="col-lg-12">
+        <div class="card chat-app">
+            <div id="plist" class="people-list">
+                <div class="input-group">
+                    Group: ChatApp
+                </div>
+                <ul class="list-unstyled chat-list mt-2 mb-0">
+                    @foreach (var item in Model.Account)
+                   {
+                        <li class="clearfix">
+                            <img src="~/images/@item.Avatar" alt="avatar">
+                            <div class="about">
+                                <div class="name">@item.Username</div>
+                                <div class="status"> <i class="fa fa-circle offline"></i> @item.CreateAt </div>                                            
+                            </div>
+                        </li>
+                   }
+                </ul>
+            </div>
+            <div class="chat">
+                <div class="chat-header clearfix">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <a href="javascript:void(0);" data-toggle="modal" data-target="#view_info">
+                                <img src="~/images/@user.Avatar" alt="avatar">
+                            </a>
+                            <div class="chat-about">
+                                <h6 class="m-b-0 center">@user.Username</h6>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 hidden-sm text-right">
+                            <a href="javascript:void(0);" class="btn btn-outline-secondary"><i class="fa fa-camera"></i></a>
+                            <a href="javascript:void(0);" class="btn btn-outline-primary"><i class="fa fa-image"></i></a>
+                            <a href="javascript:void(0);" class="btn btn-outline-info"><i class="fa fa-cogs"></i></a>
+                            <a href="javascript:void(0);" class="btn btn-outline-warning"><i class="fa fa-question"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-history">
+                    <ul class="m-b-0" id="messageList"></ul>
+                </div>
+                <div class="chat-message clearfix">
+                    <div class="input-group mb-0">
+                        <div class="input-group-prepend">
+                            <span id="sendBtn" class="input-group-text"><i class="fa fa-send"></i></span>
+                        </div>
+                        <input id="message" type="text" class="form-control" placeholder="Enter text here...">                                    
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+
+<script src="~/microsoft/signalr/dist/browser/signalr.min.js"></script>
+
+@section Scripts { 
+    <script>
+        const connection = new signalR.HubConnectionBuilder().withUrl("/chatHub").build();
+
+        connection.on("ReceiveMessage", (user, message, avatar) => {
+            const li = document.createElement("li");
+            $("#messageList").append(li);
+            li.classList.add("clearfix");
+
+            li.innerHTML = `<div class="message-data">
+                                <img src="images/${avatar}" alt="avatar">
+                                <span class="message-data-time">${user}</span>
+                            </div>
+                            <div class="message my-message"> ${message} </div>`;
+
+            $("#message").val("");
+        });
+
+        connection.start();
+
+        $("#message").on("keypress", (e) => {
+             //13 is enter keypress
+            if (e.which == 13) {
+                let message = $("#message").val();
+                if (message === "") return;
+
+                let user = `@user.Username`;
+                let avatar = `@user.Avatar`;
+
+                connection.invoke("SendMessage", user, message, avatar)
+                    .catch(err => console.error(err.toString()));
+                e.preventDefault();
+            }
+        })
+    </script>
+}

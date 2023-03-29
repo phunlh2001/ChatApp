@@ -1,0 +1,41 @@
+﻿@page
+@model ChatApp.Pages.Login.IndexModel
+@{
+	ViewData["Title"] = "Login";
+
+	var success = ViewBag.success;
+	var failed = ViewBag.err;
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/login.css" />
+
+<div class="main">  	
+		<input type="checkbox" id="chk" aria-hidden="true">
+
+			<div class="signup">
+				<form method="post" asp-page-handler="register">
+					<label for="chk" aria-hidden="true">Sign up</label>
+					@if (failed != null)
+					{
+						<span class="text-danger">@ViewBag.err</span>
+					} else if (success != null)
+					{
+						<span class="text-success">@ViewBag.success</span>
+					}
+					<input type="text" asp-for="Account.Username" placeholder="Username" />
+					<input type="password" asp-for="Account.Password" placeholder="Password" />
+					<input type="password" asp-for="ConfirmPassword" placeholder="Confirm Password" />
+					<button type="submit">Sign up</button>
+				</form>
+			</div>
+
+			<div class="login">
+				<form method="post" asp-page-handler="login">
+					<label for="chk" aria-hidden="true">Login</label>
+					<input type="text" name="username" placeholder="Username" />
+					<input type="password" name="password" placeholder="Password" />
+					<button>Login</button>
+				</form>
+			</div>
+	</div>
